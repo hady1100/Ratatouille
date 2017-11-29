@@ -53,18 +53,27 @@ public class MainActivity extends AppCompatActivity {
         System.out.println(res);
         return g.fromJson(res, Response.class);
     }
-    public static void postReq(String message, String urlString) throws IOException {
+    public static Response postReq(String message, String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         Gson g  = new Gson();
         Request req = new Request(message);
         String out = g.toJson(req);
-        conn.getOutputStream().write(out.getBytes("UTF8"));
+        conn.setRequestMethod("POST");
         conn.addRequestProperty("Content-Type", "application/json");
         conn.addRequestProperty("Authorization", uuid);
+        conn.getOutputStream().write(out.getBytes("UTF8"));
 
-        conn.setRequestMethod("POST");
+        BufferedReader is = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
+        String res = "";
+        String cur = "";
+        while((cur = is.readLine()) != null){
+            res = res + cur;
+        }
+
+        System.out.println(res);
+        return g.fromJson(res, Response.class);
     }
 
     @Override
@@ -106,11 +115,14 @@ public class MainActivity extends AppCompatActivity {
                 //validate and send message
                 Message message = new Message((msg_id++)+"", author, input.toString(), new Date());
                 adapter.addToStart(message, true);
+                Response res = null;
                 try {
-                    postReq(input.toString(), "https://ratatouille-guc.herokuapp.com/chat");
+                    res = postReq(input.toString(), "https://ratatouille-guc.herokuapp.com/chat");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Message back = new Message((msg_id++)+"", me, res.message, new Date());
+                adapter.addToStart(back, true);
                 return true;
             }
         });
