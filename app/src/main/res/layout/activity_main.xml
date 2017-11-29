@@ -10,15 +10,25 @@
         android:id="@+id/messagesList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/send" />
+        android:layout_above="@+id/send"
+        app:incomingAvatarHeight="36dp"
+        app:incomingAvatarWidth="36dp"
+        app:incomingBubblePaddingLeft="8dp"
+        app:incomingBubblePaddingRight="8dp"
+        app:incomingDefaultBubbleColor="@color/colorAccent"
+        app:incomingTimeTextSize="0sp"
+        app:incomingTextLinkColor="@color/colorPrimaryDark"
+        app:outcomingDefaultBubbleColor="@color/colorPrimaryDark"
+        android:paddingBottom="60dp"/>
+
 
     <com.stfalcon.chatkit.messages.MessageInput
         android:id="@+id/send"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         app:inputHint="@string/hint_enter_a_message"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="450dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
