@@ -2,6 +2,7 @@ package com.ratatouille.ratatouille_guc;
 
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
+import com.stfalcon.chatkit.commons.models.MessageContentType;
 
 import java.util.Date;
 
@@ -9,8 +10,8 @@ import java.util.Date;
  * Created by hady on 11/29/17.
  */
 
-public class Message implements IMessage {
-    String id, text;
+public class Message implements IMessage, MessageContentType.Image, MessageContentType {
+    String id, text, imageUrl;
     Author author;
     Date createdAt;
 
@@ -23,6 +24,14 @@ public class Message implements IMessage {
         this.text = text;
         this.author = author;
         this.createdAt = createdAt;
+    }
+
+    public Message(String id, Author author, String text, Date createdAt, String imageUrl) {
+        this.id = id;
+        this.text = text;
+        this.author = author;
+        this.createdAt = createdAt;
+        this.imageUrl = imageUrl;
     }
 
     @Override
@@ -43,5 +52,10 @@ public class Message implements IMessage {
     @Override
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    @Override
+    public String getImageUrl() {
+        return imageUrl;
     }
 }
