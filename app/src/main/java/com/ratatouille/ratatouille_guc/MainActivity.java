@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         Response res = null;
 
         try {
-            res = getReq("https://ratatouille-guc.herokuapp.com/welcome");
+            res = getReq("https://Ratatouille-hadyyasser23824500.codeanyapp.com/welcome");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -117,12 +117,29 @@ public class MainActivity extends AppCompatActivity {
                 adapter.addToStart(message, true);
                 Response res = null;
                 try {
-                    res = postReq(input.toString(), "https://ratatouille-guc.herokuapp.com/chat");
+                    res = postReq(input.toString(), "https://Ratatouille-hadyyasser23824500.codeanyapp.com/chat");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Message back = new Message((msg_id++)+"", me, res.message, new Date());
-                adapter.addToStart(back, true);
+                int startInd =0;
+                for(int i = 0 ; i<res.message.length(); i++) {
+                    if (res.message.charAt(i) == ',') {
+                        String tempMes = res.message.substring(startInd, i);
+                        startInd = i + 1;
+                        String[] param = new String[3];
+                        int currentParam = 0;
+                        int idx = 0;
+                        //title, id, imgUrl, recipeId;
+                        for (int j = 0; j < tempMes.length(); j++) {
+                            if (tempMes.charAt(j) == '#') {
+                                param[currentParam] = tempMes.substring(idx, j);
+                                currentParam = j + 1;
+                            }
+                            Message back = new Message((msg_id++)+"", me, param[0], new Date(), param[1], param[2]);
+                            adapter.addToStart(back, true);
+                        }
+                    }
+                }
                 return true;
             }
         });

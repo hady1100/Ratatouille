@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Ratatouille.iml" filepath="$PROJECT_DIR$/Ratatouille.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ratatouilleGUC.iml" filepath="$PROJECT_DIR$/ratatouilleGUC.iml" />
+      <module fileurl="file://C:\Users\pc\Desktop\Advanced Lab M3\Ratatouille\ratatouilleGUC.iml" filepath="C:\Users\pc\Desktop\Advanced Lab M3\Ratatouille\ratatouilleGUC.iml" />
     </modules>
   </component>
 </project>
