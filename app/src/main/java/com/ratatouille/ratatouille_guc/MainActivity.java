@@ -3,30 +3,30 @@ package com.ratatouille.ratatouille_guc;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.util.Log;
+import android.widget.ImageView;
 
 import com.google.gson.Gson;
+import com.ratatouille.ratatouille_guc.Utils.CustomIncomingTextMessageViewHolder;
+import com.ratatouille.ratatouille_guc.Utils.CustomIncomingImageMessageViewHolder;
+import com.squareup.picasso.Picasso;
+import com.stfalcon.chatkit.commons.ImageLoader;
+import com.stfalcon.chatkit.messages.MessageHolders;
 import com.stfalcon.chatkit.messages.MessageInput;
 import com.stfalcon.chatkit.messages.MessagesList;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
-import java.io.BufferedInputStream;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
-import java.util.Scanner;
-
-import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
     private MessagesList messagesList;
+    protected ImageLoader imageLoader;
     private static final String TAG = "HADY";
     static MessagesListAdapter<Message> adapter = null;
     static String uuid = "";
@@ -91,6 +91,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        imageLoader = new ImageLoader() {
+            @Override
+            public void loadImage(ImageView imageView, String url) {
+                Picasso.with(MainActivity.this).load(url).into(imageView);
+            }
+        };
+
         this.messagesList = (MessagesList) findViewById(R.id.messagesList);
         MessageInput send = (MessageInput) findViewById(R.id.send);
         Response res = null;
@@ -103,7 +110,12 @@ public class MainActivity extends AppCompatActivity {
         uuid = res.uuid;
         author = new Author(uuid, "newUser", null);
 
-        adapter = new MessagesListAdapter<>(uuid, null);
+        //initialize and link adapter
+        MessageHolders holders = new MessageHolders();
+        holders.setIncomingImageConfig(CustomIncomingImageMessageViewHolder.class, R.layout.item_custom_incoming_image_message);
+        holders.setIncomingTextConfig(CustomIncomingTextMessageViewHolder.class, R.layout.item_custom_incoming_text);
+        adapter = new MessagesListAdapter<>(uuid, holders,imageLoader);
+        adapter.disableSelectionMode();
 
         this.messagesList.setAdapter(adapter);
 
@@ -114,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onSubmit(CharSequence input) {
                 //validate and send message
                 Message message = new Message((msg_id++)+"", author, input.toString(), new Date());
+
                 adapter.addToStart(message, true);
                 Response res = null;
                 try {
@@ -121,7 +134,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Message back = new Message((msg_id++)+"", me, res.message, new Date());
+                Message back = new Message((msg_id++)+"", me, res.message, new Date(), "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Mallard2.jpg/1200px-Mallard2.jpg");
+                Log.i(TAG, back.imageUrl);
                 adapter.addToStart(back, true);
                 return true;
             }
