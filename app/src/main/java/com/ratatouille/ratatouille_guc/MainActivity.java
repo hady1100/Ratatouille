@@ -122,7 +122,12 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 int startInd =0;
+            if(!res.message.contains("#")){
+                    Message temp =  new Message((msg_id++)+"", me, res.message, new Date());
+                    adapter.addToStart(temp, true);
+            }else{
                 for(int i = 0 ; i<res.message.length(); i++) {
+                    Log.i(TAG,res.message);
                     if (res.message.charAt(i) == ',') {
                         String tempMes = res.message.substring(startInd, i);
                         startInd = i + 1;
@@ -135,10 +140,12 @@ public class MainActivity extends AppCompatActivity {
                                 param[currentParam] = tempMes.substring(idx, j);
                                 currentParam = j + 1;
                             }
-                            Message back = new Message((msg_id++)+"", me, param[0], new Date(), param[1], param[2]);
+                            Message back = new Message((msg_id++) + "", me, param[0], new Date(), param[1], param[2]);
                             adapter.addToStart(back, true);
                         }
                     }
+
+                }
                 }
                 return true;
             }
