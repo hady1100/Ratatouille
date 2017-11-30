@@ -11,7 +11,7 @@ import java.util.Date;
  */
 
 public class Message implements IMessage, MessageContentType.Image, MessageContentType {
-    String id, text, imageUrl;
+    String id, text, imageUrl, recipe_id;
     Author author;
     Date createdAt;
 
@@ -26,13 +26,23 @@ public class Message implements IMessage, MessageContentType.Image, MessageConte
         this.createdAt = createdAt;
     }
 
-    public Message(String id, Author author, String text, Date createdAt, String imageUrl) {
+    public Message(String id, Author author, String text, Date createdAt, String recipe_id) {
+        this.id = id;
+        this.text = text;
+        this.author = author;
+        this.createdAt = createdAt;
+        this.recipe_id = recipe_id;
+    }
+
+    public Message(String id, Author author, String text, Date createdAt, String imageUrl, String recipe_id) {
         this.id = id;
         this.text = text;
         this.author = author;
         this.createdAt = createdAt;
         this.imageUrl = imageUrl;
+        this.recipe_id = recipe_id;
     }
+
 
     @Override
     public String getId() {

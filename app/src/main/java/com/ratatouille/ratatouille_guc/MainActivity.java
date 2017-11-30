@@ -21,9 +21,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity {
+
+    static boolean valid_ing = false;
+    static boolean valid_id = false;
 
     private MessagesList messagesList;
     protected ImageLoader imageLoader;
@@ -40,13 +45,15 @@ public class MainActivity extends AppCompatActivity {
         conn.setConnectTimeout(7000);
         conn.setRequestMethod("GET");
 
-//        Log.i(TAG, conn.getPermission().toString());
         conn.setRequestMethod("GET");
         BufferedReader is = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
         String res = "";
         String cur = "";
         while((cur = is.readLine()) != null){
+            String tmp = cur.replace(" ","");
+            if(tmp.isEmpty())
+                continue;
             res = res + cur;
         }
         Gson g = new Gson();
@@ -69,10 +76,11 @@ public class MainActivity extends AppCompatActivity {
         String res = "";
         String cur = "";
         while((cur = is.readLine()) != null){
+            String tmp = cur.replace(" ","");
+            if(tmp.isEmpty())
+                continue;
             res = res + cur;
         }
-
-        System.out.println(res);
         return g.fromJson(res, Response.class);
     }
 
@@ -116,6 +124,25 @@ public class MainActivity extends AppCompatActivity {
         holders.setIncomingTextConfig(CustomIncomingTextMessageViewHolder.class, R.layout.item_custom_incoming_text);
         adapter = new MessagesListAdapter<>(uuid, holders,imageLoader);
         adapter.disableSelectionMode();
+        adapter.setOnMessageClickListener(new MessagesListAdapter.OnMessageClickListener<Message>() {
+            @Override
+            public void onMessageClick(Message message) {
+                try {
+                   Response res = postReq(message.recipe_id, "https://ratatouille-guc.herokuapp.com/chat");
+                    if(!res.message.contains("Make sure you sent a correct recipe ID") && (res.message.length() >= 1)){
+                        Message back = new Message((msg_id++) + "", me, res.message, new Date());
+                        adapter.addToStart(back, true);
+                        res = postReq(message.recipe_id, "https://ratatouille-guc.herokuapp.com/chat");
+                        back = new Message((msg_id++) + "", me, res.message, new Date());
+                        adapter.addToStart(back, true);
+                    } else {
+                        postReq("cancel", "https://ratatouille-guc.herokuapp.com/chat");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         this.messagesList.setAdapter(adapter);
 
@@ -124,19 +151,50 @@ public class MainActivity extends AppCompatActivity {
         send.setInputListener(new MessageInput.InputListener() {
             @Override
             public boolean onSubmit(CharSequence input) {
+                String in = input.toString();
+                StringTokenizer st = new StringTokenizer(in);
+
+                in = st.nextToken(); //new lines causes app to crash
+
                 //validate and send message
-                Message message = new Message((msg_id++)+"", author, input.toString(), new Date());
+                Message message = new Message((msg_id++)+"", author, in, new Date());
 
                 adapter.addToStart(message, true);
                 Response res = null;
                 try {
-                    res = postReq(input.toString(), "https://ratatouille-guc.herokuapp.com/chat");
+                    res = postReq(in.toString(), "https://ratatouille-guc.herokuapp.com/chat");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Message back = new Message((msg_id++)+"", me, res.message, new Date(), "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Mallard2.jpg/1200px-Mallard2.jpg");
-                Log.i(TAG, back.imageUrl);
-                adapter.addToStart(back, true);
+//                Log.i(TAG, res.message);
+                String [] parsed = res.message.split("<New>");
+                Message back = null;
+                if(!res.message.contains("<New>")) {
+                    if((res.message.length() >= 2)) {
+                        back = new Message((msg_id++) + "", me, res.message, new Date());
+                        adapter.addToStart(back, true);
+                    } else {
+                        try {
+                            postReq("cancel", "https://ratatouille-guc.herokuapp.com/chat");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        back = new Message((msg_id++) + "", me, "No results found.\nPlease try again and make sure the ingredients are valid!", new Date());
+                        adapter.addToStart(back, true);
+                    }
+                } else {
+                    for (int i = 0; i < parsed.length; i++) {
+                        if(i == 5)
+                            break;
+                        String[] param = parsed[i].split("#");
+                        //Create messages with the parameters
+                        Log.i(TAG, Arrays.toString(param));
+                        back = new Message((msg_id++) + "", me, param[0], new Date(), param[1], param[2]);
+                        adapter.addToStart(back, true);
+                        back = new Message((msg_id++) + "", me, param[0], new Date(), param[2]);
+                        adapter.addToStart(back, true);
+                    }
+                }
                 return true;
             }
         });
