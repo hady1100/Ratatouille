@@ -29,7 +29,11 @@ public class MainActivity extends AppCompatActivity {
 
     static boolean valid_ing = false;
     static boolean valid_id = false;
-
+    static final String help_message = "It seems like you are having trouble finding your ingredients.\nHere is how its done:\n" +
+            "step 1: search for a recipe\n" +
+            "step 2: click on the image or the title of the recipe that you desire.\n" +
+            "ps: if you are stuck at any stage or want to start over fom any point, click the red \"X\" button or type \"cancel\"\n" +
+            "If you are looking for suggestions, send an empty message";
     private MessagesList messagesList;
     protected ImageLoader imageLoader;
     private static final String TAG = "HADY";
@@ -42,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     public static Response getReq(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(7000);
-        conn.setRequestMethod("GET");
+//        conn.setConnectTimeout(7000);
+//        conn.setRequestMethod("GET");
 
         conn.setRequestMethod("GET");
         BufferedReader is = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -107,11 +111,14 @@ public class MainActivity extends AppCompatActivity {
         };
 
         this.messagesList = (MessagesList) findViewById(R.id.messagesList);
-        MessageInput send = (MessageInput) findViewById(R.id.send);
+        final MessageInput send = (MessageInput) findViewById(R.id.send);
         Response res = null;
 
         try {
             res = getReq("https://ratatouille-guc.herokuapp.com/welcome");
+            if(res.message.contains("Ratatouille")){
+                res.message =  "type \"/help\" if you need help using the app\n\n" + res.message;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -152,48 +159,74 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onSubmit(CharSequence input) {
                 String in = input.toString();
-                StringTokenizer st = new StringTokenizer(in);
-
-                in = st.nextToken(); //new lines causes app to crash
-
-                //validate and send message
-                Message message = new Message((msg_id++)+"", author, in, new Date());
-
-                adapter.addToStart(message, true);
-                Response res = null;
                 try {
-                    res = postReq(in.toString(), "https://ratatouille-guc.herokuapp.com/chat");
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    StringTokenizer st = new StringTokenizer(in);//new lines causes app to crash
+                    in = st.nextToken();
+                } catch (Exception e){
+                    in = "";
                 }
-//                Log.i(TAG, res.message);
-                String [] parsed = res.message.split("<New>");
-                Message back = null;
-                if(!res.message.contains("<New>")) {
-                    if((res.message.length() >= 2)) {
-                        back = new Message((msg_id++) + "", me, res.message, new Date());
-                        adapter.addToStart(back, true);
-                    } else {
-                        try {
-                            postReq("cancel", "https://ratatouille-guc.herokuapp.com/chat");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        back = new Message((msg_id++) + "", me, "No results found.\nPlease try again and make sure the ingredients are valid!", new Date());
-                        adapter.addToStart(back, true);
-                    }
+//                if(st.countTokens() == 0)
+//                    in = "Anon";
+                Log.i(TAG, in);
+                if(in.equals("/help")){
+                    Message help = new Message((msg_id++) + "", me, help_message, new Date());
+                    adapter.addToStart(help, true);
                 } else {
-                    for (int i = 0; i < parsed.length; i++) {
-                        if(i == 5)
-                            break;
-                        String[] param = parsed[i].split("#");
-                        //Create messages with the parameters
-                        Log.i(TAG, Arrays.toString(param));
-                        back = new Message((msg_id++) + "", me, param[0], new Date(), param[1], param[2]);
-                        adapter.addToStart(back, true);
-                        back = new Message((msg_id++) + "", me, param[0], new Date(), param[2]);
-                        adapter.addToStart(back, true);
+                    //validate and send message
+                    Message message = new Message((msg_id++) + "", author, in, new Date());
+
+                    adapter.addToStart(message, true);
+                    Response res = null;
+                    try {
+                        res = postReq(in.toString(), "https://ratatouille-guc.herokuapp.com/chat");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+//                Log.i(TAG, res.message);
+                    String[] parsed = res.message.split("<New>");
+                    Message back = null;
+                    if (!res.message.contains("<New>")) {
+                        if ((res.message.length() >= 2)) {
+                            if (res.message.contains("What do you feel like cooking today?")) {
+                                send.setAttachmentsListener(new MessageInput.AttachmentsListener() {
+                                    @Override
+                                    public void onAddAttachments() {
+                                        try {
+                                            Response res = postReq("cancel", "https://ratatouille-guc.herokuapp.com/chat");
+                                            Message message = new Message((msg_id++) + "", me, res.message, new Date());
+                                            adapter.addToStart(message, true);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+
+                            }
+                            back = new Message((msg_id++) + "", me, res.message, new Date());
+                            adapter.addToStart(back, true);
+                        } else {
+                            try {
+                                postReq("cancel", "https://ratatouille-guc.herokuapp.com/chat");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            back = new Message((msg_id++) + "", me, "No results found.\nPlease try again and make sure the ingredients are valid!", new Date());
+                            adapter.addToStart(back, true);
+                        }
+                    } else {
+                        for (int i = 0; i < parsed.length; i++) {
+                            if (i == 5)
+                                break;
+                            String[] param = parsed[i].split("#");
+                            //Create messages with the parameters
+                            Log.i(TAG, Arrays.toString(param));
+                            back = new Message((msg_id++) + "", me, param[0], new Date(), param[1], param[2]);
+                            adapter.addToStart(back, true);
+                            back = new Message((msg_id++) + "", me, param[0], new Date(), param[2]);
+                            adapter.addToStart(back, true);
+                        }
+                    }
+                    return true;
                 }
                 return true;
             }

@@ -29,6 +29,9 @@
         android:layout_alignParentBottom="true"
         app:inputHint="@string/hint_enter_a_message"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:showAttachmentButton="true"
+        app:attachmentButtonIcon="@android:drawable/ic_menu_close_clear_cancel"
+        app:attachmentButtonBackground="@color/red"/>
 
 </android.support.constraint.ConstraintLayout>
