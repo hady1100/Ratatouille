@@ -27,8 +27,6 @@ import java.util.StringTokenizer;
 
 public class MainActivity extends AppCompatActivity {
 
-    static boolean valid_ing = false;
-    static boolean valid_id = false;
     static final String help_message = "It seems like you are having trouble finding your ingredients.\nHere is how its done:\n" +
             "step 1: search for a recipe\n" +
             "step 2: click on the image or the title of the recipe that you desire.\n" +
@@ -46,8 +44,6 @@ public class MainActivity extends AppCompatActivity {
     public static Response getReq(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//        conn.setConnectTimeout(7000);
-//        conn.setRequestMethod("GET");
 
         conn.setRequestMethod("GET");
         BufferedReader is = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -96,8 +92,6 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
-            //your codes here
-
         }
 
         super.onCreate(savedInstanceState);
@@ -165,11 +159,11 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e){
                     in = "";
                 }
-//                if(st.countTokens() == 0)
-//                    in = "Anon";
                 Log.i(TAG, in);
                 if(in.equals("/help")){
                     Message help = new Message((msg_id++) + "", me, help_message, new Date());
+                    Message message = new Message((msg_id++) + "", author, in, new Date());
+                    adapter.addToStart(message, true);
                     adapter.addToStart(help, true);
                 } else {
                     //validate and send message
@@ -182,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-//                Log.i(TAG, res.message);
+
                     String[] parsed = res.message.split("<New>");
                     Message back = null;
                     if (!res.message.contains("<New>")) {
